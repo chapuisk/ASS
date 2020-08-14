@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING, Union, TextIO
 
 if TYPE_CHECKING:
     from PyASS.ass_abstractions import ASSCorpus
+    from PyASS.ass_abstractions import ASSItem
 
 from PyASS import ass_constant
 
@@ -62,6 +63,10 @@ class ASSCorpus:
             self._corpus.update(another_corpus.corpus())
         except ValueError:
             raise
+
+    def add_item(self, item: ASSItem) -> ASSCorpus:
+        self._corpus.add(item)
+        return self
 
     def add_article(self, bibentry: Union[str, TextIO]):
         """
@@ -156,6 +161,9 @@ class ASSArticle(ASSItem):
         self._abstract = bibentry.get(ass_constant.ABSTRACT_TAG, None)
         self._content = bibentry.get(ass_constant.CONTENT_TAG, None)
 
+    def __repr__(self):
+        return self._content
+
     def title(self):
         return self._title
 
@@ -201,14 +209,3 @@ class ASSArticle(ASSItem):
             indent=0
         ))
         file.close()
-
-
-corp = ASSCorpus()
-print(ASSCorpus().corpus())
-
-corp.add_article(bibentry="@article{myarticle,title = {my first article},author = {me too}, keywords = {k1,k2}}")
-print(corp.corpus())
-
-bib = open("data/ASS.bib")
-ass_bib = ASSCorpus(**{ass_constant.BIB_ENTRY: bib})
-print("There is "+str(len(ass_bib.corpus()))+" entries in the bib database")

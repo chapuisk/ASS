@@ -14,7 +14,3 @@ BIB_STR = "bibstr"
 SCORE_TAG = "SCORE"
 VECTOR_TAG = "VECTORS"
 CLUSTER_TAG = "CLUSTER"
-
-JASSS_BASE_URL = "http://jasss.soc.surrey.ac.uk/"
-JASSS_INDEX_URL = "http://jasss.soc.surrey.ac.uk/index_by_issue.html"
-JASSS_SEP = '/'
