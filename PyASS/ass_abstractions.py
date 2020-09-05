@@ -40,14 +40,22 @@ class ASSCorpus:
           a json file that describe the corpus
         """
         if ass_constant.BIB_ENTRY in kwargs:
-            with kwargs[ass_constant.BIB_ENTRY] as bibfile:
-                self._corpus = set([ASSArticle(bibdict=bib) for bib
-                                    in list(loadbibtex(bibfile).entries_dict.values())])
+            with kwargs[ass_constant.BIB_ENTRY] as bib_file:
+                self._corpus = set([ASSArticle(bib_dict=bib) for bib
+                                    in list(loadbibtex(bib_file).entries_dict.values())])
         elif ass_constant.BIB_JSON in kwargs:
-            with json.load(kwargs[ass_constant.BIB_ENTRY]) as bibjson:
-                self._corpus = set([ASSArticle(**{ass_constant.BIB_JSON: bib}) for bib in bibjson])
+            with kwargs[ass_constant.BIB_JSON] as bib_json:
+                self._corpus = set([ASSArticle(**{ass_constant.BIB_JSON: bib}) for bib in bib_json])
         else:
             self._corpus = set()
+
+    def __repr__(self):
+        """
+        The representation of a corpus
+        :return: a string representation of the corpus
+        """
+        return ''.joint("A corpus made of ", len(self._corpus),
+                        " with types: ", [type(item) for item in self._corpus])
 
     def corpus(self) -> frozenset:
         """
@@ -64,7 +72,7 @@ class ASSCorpus:
         except ValueError:
             raise
 
-    def add_item(self, item: ASSItem) -> ASSCorpus:
+    def add_item(self, item: 'ASSItem') -> 'ASSCorpus':
         self._corpus.add(item)
         return self
 
@@ -87,6 +95,7 @@ class ASSItem:
     """
     An elemental textual item to be grouped in a corpus
     """
+    _labels: list
 
     @abstractmethod
     def title(self) -> str:
@@ -112,11 +121,18 @@ class ASSItem:
     def export_bibtex(self, file):
         pass
 
+    def labels(self) -> list:
+        """
+        The list of user labels associated with the entry
+        :return: list -- a list of string labels
+        """
+        return self._labels
+
     def export_json(self, file):
         file = open(file, "w")
-        file.write("title:".append(self.title()))
-        file.write("keywords:".append(self.keywords()))
-        file.write("content:".append(self.text()))
+        file.write(''.join([ass_constant.TITLE_TAG, ": ", self.title()]))
+        file.write(''.join([ass_constant.KEYWORD_TAG, ": ", self.keywords()]))
+        file.write(''.join([ass_constant.CONTENT_TAG, ": ", self.content()]))
         file.close()
 
 
@@ -128,7 +144,6 @@ class ASSArticle(ASSItem):
     _keywords: list
     _abstract: str
     _author: list
-
     _doi: str
     _issn: str
 
@@ -143,7 +158,7 @@ class ASSArticle(ASSItem):
           a bibtex string entry
         * *bibjson* (``str``) --
           a raw json serialization of an ASSArticle
-        * *bibdict* (``dict``) --
+        * *bib_dict* (``dict``) --
           a dict of entries (take the first one)
         """
         bibentry: dict
@@ -153,13 +168,15 @@ class ASSArticle(ASSItem):
             bibentry = list(loadstrtex(kwargs[ass_constant.BIB_STR]).entries_dict.values())[0]
         elif ass_constant.BIB_JSON in kwargs:
             bibentry = json.load(kwargs[ass_constant.BIB_STR])
-        elif 'bibdict' in kwargs:
-            bibentry = kwargs['bibdict']
+        elif ass_constant.BIB_DICT in kwargs:
+            bibentry = kwargs[ass_constant.BIB_DICT]
         self._title = bibentry.get(ass_constant.TITLE_TAG, None)
         self._author = bibentry.get(ass_constant.AUTHOR_TAG, None)
         self._keywords = bibentry.get(ass_constant.KEYWORD_TAG, None)
         self._abstract = bibentry.get(ass_constant.ABSTRACT_TAG, None)
         self._content = bibentry.get(ass_constant.CONTENT_TAG, None)
+        self._doi = bibentry.get(ass_constant.DOI_TAG, None)
+        self._issn = bibentry.get(ass_constant.ISSN_TAG, None)
 
     def __repr__(self):
         return self._content
@@ -181,18 +198,18 @@ class ASSArticle(ASSItem):
 
     def raw(self) -> dict:
         return {
-            ass_constant.DOI_TAG: self._doi,
-            ass_constant.ISSN_TAG: self._issn,
-            ass_constant.TITLE_TAG: self._title,
-            ass_constant.AUTHOR_TAG: self._author,
-            ass_constant.ABSTRACT_TAG: self._abstract,
-            ass_constant.KEYWORD_TAG: self._keywords,
-            ass_constant.CONTENT_TAG: self._content
+            ass_constant.DOI_TAG: (self._doi if self._doi else ass_constant.NA),
+            ass_constant.ISSN_TAG: (self._issn if self._issn else ass_constant.NA),
+            ass_constant.TITLE_TAG: (self._title if self._title else ass_constant.NA),
+            ass_constant.AUTHOR_TAG: ('; '.join(self._author) if self._author else ass_constant.NA),
+            ass_constant.ABSTRACT_TAG: (self._abstract if self._abstract else ass_constant.NA),
+            ass_constant.KEYWORD_TAG: ('; '.join(self._keywords) if self._keywords else ass_constant.NA),
+            ass_constant.CONTENT_TAG: (self._content if self._content else ass_constant.NA)
         }
 
     def export_bibtex(self, file):
-        with open(file, 'w') as bibfile:
-            bibfile.write(BibTexWriter().write(
+        with open(file, 'w') as bib_file:
+            bib_file.write(BibTexWriter().write(
                 {
                     ass_constant.TITLE_TAG: self._title,
                     ass_constant.AUTHOR_TAG: self._author,
