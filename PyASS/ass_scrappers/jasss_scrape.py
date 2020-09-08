@@ -7,17 +7,17 @@ from requests import HTTPError
 
 from PyASS import ass_abstractions as ass
 
-FROM_VOLUME = "from_volume"
-TO_VOLUME = "to_volume"
-FROM_ISSUE = "from_issue"
-TO_ISSUE = "to_issue"
-FROM_ARTICLE = "from_article"
-TO_ARTICLE = "to_article"
+_FROM_VOLUME = "from_volume"
+_TO_VOLUME = "to_volume"
+_FROM_ISSUE = "from_issue"
+_TO_ISSUE = "to_issue"
+_FROM_ARTICLE = "from_article"
+_TO_ARTICLE = "to_article"
 
-SKIP_REVIEW = "skip review"
-TO_FOLDER = "to_folder"
+_SKIP_REVIEW = "skip review"
+_TO_FOLDER = "to_folder"
 
-RVW = "review"
+_RVW = "review"
 
 logging.basicConfig()
 log = logging.getLogger("ass.jasss_scrape")
@@ -32,7 +32,7 @@ class JASSS_Scrapper:
     _JASSS_INDEX_URL = "http://jasss.soc.surrey.ac.uk/index_by_issue.html"
     _JASSS_SEP = '/'
 
-    jasss_biblio_match = "References"
+    _JASSS_BIBLIO_MATCH = "References"
 
     _JASSS_META_TAG = "meta"
     _JASSS_META_NAME = "name"
@@ -80,14 +80,14 @@ class JASSS_Scrapper:
          * to_folder -- path (default = .tmp/)
         :return: ASSCorpus
         """
-        fv = kwargs[FROM_VOLUME] if FROM_VOLUME in kwargs else 0
-        fi = kwargs[FROM_ISSUE] if FROM_ISSUE in kwargs else 0
-        fa = kwargs[FROM_ARTICLE] if FROM_ARTICLE in kwargs else 0
-        tv = kwargs[TO_VOLUME] if TO_VOLUME in kwargs else -1
-        ti = kwargs[TO_ISSUE] if TO_ISSUE in kwargs else -1
-        ta = kwargs[TO_ARTICLE] if TO_ARTICLE in kwargs else -1
-        sr = kwargs[SKIP_REVIEW] if SKIP_REVIEW in kwargs else False
-        tp = kwargs[TO_FOLDER] if TO_FOLDER in kwargs else Path(os.getcwd() + "/data")
+        fv = kwargs[_FROM_VOLUME] if _FROM_VOLUME in kwargs else 0
+        fi = kwargs[_FROM_ISSUE] if _FROM_ISSUE in kwargs else 0
+        fa = kwargs[_FROM_ARTICLE] if _FROM_ARTICLE in kwargs else 0
+        tv = kwargs[_TO_VOLUME] if _TO_VOLUME in kwargs else -1
+        ti = kwargs[_TO_ISSUE] if _TO_ISSUE in kwargs else -1
+        ta = kwargs[_TO_ARTICLE] if _TO_ARTICLE in kwargs else -1
+        sr = kwargs[_SKIP_REVIEW] if _SKIP_REVIEW in kwargs else False
+        tp = kwargs[_TO_FOLDER] if _TO_FOLDER in kwargs else Path(os.getcwd() + "/data")
         corp = ass.ASSCorpus()
 
         req_text = bs.request.urlopen(url=self._JASSS_INDEX_URL).read()
@@ -148,7 +148,7 @@ class JASSS_Scrapper:
         :param url: the url of the JASSS article
         :return: true if the soup represents a review false otherwise
         """
-        return True if RVW in url or not JASSS_Scrapper.get_issue_from_url(url)[-1].isdigit() else False
+        return True if _RVW in url or not JASSS_Scrapper.get_issue_from_url(url)[-1].isdigit() else False
 
     @staticmethod
     def doi(url, soup: bs.BeautifulSoup):
